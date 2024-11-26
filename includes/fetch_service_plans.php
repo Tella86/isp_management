@@ -3,7 +3,7 @@ include 'db.php';
 
 try {
     // Fetch available service plans
-    $sql = "SELECT id, plan_name FROM service_plans";
+    $sql = "SELECT id, plan_name, data_limit, data_limit, plan_cost, plan_speed FROM service_plans";
     $result = $conn->query($sql);
 
     if (!$result) {

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Service Plan Management</title>
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">Service Plan Management</h1>
+
+    <!-- Add Service Plan Button -->
+    <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#servicePlanModal" onclick="resetForm()">Add Service Plan</button>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Cost</th>
+                <th>Speed</th>
+                <th>Data Limit</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="servicePlanTableBody"></tbody>
+    </table>
+</div>
+
+<!-- Service Plan Modal -->
+<div class="modal fade" id="servicePlanModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="servicePlanForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Service Plan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="servicePlanId" name="id">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" id="planName" name="plan_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cost</label>
+                        <input type="number" class="form-control" id="planCost" name="plan_cost" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Speed</label>
+                        <input type="text" class="form-control" id="planSpeed" name="plan_speed" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Data Limit</label>
+                        <input type="text" class="form-control" id="dataLimit" name="data_limit">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function loadServicePlans() {
+        $.get('includes/fetch_service_plans.php', function(data) {
+            let rows = '';
+            data.forEach(plan => {
+                rows += `
+                    <tr>
+                        <td>${plan.id}</td>
+                        <td>${plan.plan_name}</td>
+                        <td>${plan.plan_cost}</td>
+                        <td>${plan.plan_speed}</td>
+                        <td>${plan.data_limit || 'Unlimited'}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="editServicePlan(${plan.id}, '${plan.plan_name}', ${plan.plan_cost}, '${plan.plan_speed}', '${plan.data_limit}')">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteServicePlan(${plan.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            $('#servicePlanTableBody').html(rows);
+        });
+    }
+
+    function resetForm() {
+        $('#servicePlanForm')[0].reset();
+        $('#servicePlanId').val('');
+    }
+
+    function editServicePlan(id, name, cost, speed, limit) {
+        $('#servicePlanId').val(id);
+        $('#planName').val(name);
+        $('#planCost').val(cost);
+        $('#planSpeed').val(speed);
+        $('#dataLimit').val(limit);
+        $('#servicePlanModal').modal('show');
+    }
+
+    $('#servicePlanForm').on('submit', function(e) {
+        e.preventDefault();
+        const formData = $(this).serialize();
+        const url = $('#servicePlanId').val() ? 'update_service_plan.php' : 'create_service_plan.php';
+
+        $.post(url, formData, function(response) {
+            alert(response);
+            $('#servicePlanModal').modal('hide');
+            loadServicePlans();
+        });
+    });
+
+    function deleteServicePlan(id) {
+        if (confirm('Are you sure you want to delete this plan?')) {
+            $.post('delete_service_plan.php', { id }, function(response) {
+                alert(response);
+                loadServicePlans();
+            });
+        }
+    }
+
+    $(document).ready(function() {
+        loadServicePlans();
+    });
+</script>
+</body>
+</html>

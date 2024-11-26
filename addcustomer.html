@@ -44,7 +44,7 @@
         e.preventDefault();
         const formData = $(this).serialize();
         
-        $.post('add_customer.php', formData, function(response) {
+        $.post('includes/add_customer.php', formData, function(response) {
             alert(response);
             $('#addCustomerForm')[0].reset();
         });
