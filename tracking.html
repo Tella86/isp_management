@@ -98,7 +98,7 @@
         alert(`Data Limit: ${dataLimit} MB, Speed Limit: ${speedLimit} Mbps`);
 
         // Send limit data to the backend
-        $.post('set_usage_limit.php', {
+        $.post('includes/set_usage_limit.php', {
             dataLimit: dataLimit,
             speedLimit: speedLimit
         }, function(response) {

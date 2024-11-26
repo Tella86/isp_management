@@ -34,7 +34,7 @@
 <div class="modal fade" id="invoiceModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="invoiceForm">
+            <form id="invoiceForm" enctype="multipart/form-data">
                 <div class="modal-header">
                     <h5 class="modal-title">Create/Edit Invoice</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -83,11 +83,39 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    $(document).ready(function() {
+        loadInvoices(); // Load existing invoices
+        loadCustomers(); // Load customers when the page loads
+
+        // Handle form submission to create a new invoice
+        $('#invoiceForm').submit(function(e) {
+            e.preventDefault(); // Prevent the default form submission
+
+            const formData = new FormData(this); // Get all form data
+
+            $.ajax({
+                url: 'includes/create_invoice.php', // Your backend PHP file
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    alert(response); // Show success message
+                    loadInvoices(); // Reload invoices
+                    $('#invoiceModal').modal('hide'); // Close the modal
+                },
+                error: function(xhr, status, error) {
+                    alert("An error occurred: " + xhr.responseText); // Show error message
+                }
+            });
+        });
+    });
+
+    // Function to load invoices
     function loadInvoices() {
-        $.get('fetch_invoices.php', function(data) {
-            const invoices = JSON.parse(data);
+        $.get('includes/fetch_invoices.php', function(data) {
             let rows = '';
-            invoices.forEach(invoice => {
+            data.forEach(invoice => {
                 rows += `
                     <tr>
                         <td>${invoice.id}</td>
@@ -107,6 +135,7 @@
         });
     }
 
+    // Function to add invoice items
     function addInvoiceItem() {
         const itemIndex = $('#invoiceItems div').length;
         $('#invoiceItems').append(`
@@ -125,17 +154,32 @@
         `);
     }
 
+    // Function to reset the invoice form
     function resetInvoiceForm() {
         $('#invoiceForm')[0].reset();
         $('#invoiceItems').html('');
-        addInvoiceItem();
+        addInvoiceItem(); // Start with one item input field
         loadCustomers();  // Load customers when the invoice form is reset
     }
 
-    function editInvoice(id) {
-        // Fetch invoice details and populate the form
+    // Function to load customers dynamically
+    function loadCustomers() {
+        $.get('includes/fetch_customer.php', function(data) {
+            const customers = JSON.parse(data);
+            let options = '<option value="">Select a Customer</option>';
+            customers.forEach(customer => {
+                options += `<option value="${customer.id}">${customer.name}</option>`;
+            });
+            $('#customerId').html(options);
+        });
     }
 
+    // Function to edit an invoice (not yet implemented)
+    function editInvoice(id) {
+        // Fetch invoice details and populate the form (implementation needed)
+    }
+
+    // Function to delete an invoice
     function deleteInvoice(id) {
         if (confirm('Are you sure you want to delete this invoice?')) {
             $.post('delete_invoice.php', { invoice_id: id }, function(response) {
@@ -144,23 +188,6 @@
             });
         }
     }
-
-    function loadCustomers(callback) {
-        $.get('includes/fetch_customer.php', function(data) {
-            const customers = JSON.parse(data);
-            let options = '<option value="">Select a Customer</option>';
-            customers.forEach(customer => {
-                options += `<option value="${customer.id}">${customer.name}</option>`;
-            });
-            $('#customerId').html(options);
-            if (callback) callback();
-        });
-    }
-
-    $(document).ready(function() {
-        loadInvoices(); // Load existing invoices
-        loadCustomers(); // Load customers when the page loads
-    });
 </script>
 </body>
 </html>

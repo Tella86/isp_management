@@ -118,7 +118,7 @@
 <script>
  function loadDashboardData() {
     // Fetch data using AJAX from fetch_dashboard_data.php
-    $.get('fetch_dashboard_data.php', function(data) {
+    $.get('includes/fetch_dashboard_data.php', function(data) {
         const dashboardData = JSON.parse(data);
 
         // Update the "Total Customers" card with the fetched data
