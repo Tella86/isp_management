@@ -1,18 +1,26 @@
 <?php
 include 'db.php';
 
-// Fetch all service plans
-$sql = "SELECT id, plan_name FROM service_plans";
-$result = $conn->query($sql);
+try {
+    // Fetch available service plans
+    $sql = "SELECT id, plan_name FROM service_plans";
+    $result = $conn->query($sql);
 
-$servicePlans = [];
-if ($result->num_rows > 0) {
+    if (!$result) {
+        throw new Exception('Database query failed: ' . $conn->error);
+    }
+
+    $servicePlans = [];
     while ($row = $result->fetch_assoc()) {
         $servicePlans[] = $row;
     }
-}
 
-// Return data as JSON
-header('Content-Type: application/json');
-echo json_encode($servicePlans);
+    // Return as JSON
+    header('Content-Type: application/json');
+    echo json_encode($servicePlans);
+
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['error' => $e->getMessage()]);
+}
 ?>
