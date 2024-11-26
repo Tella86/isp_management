@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Customer Management</title>
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">Customer Management</h1>
+    <table class="table table-bordered mt-4">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>Service Plan</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="customerTableBody"></tbody>
+    </table>
+</div>
+
+<!-- Modal for Editing Customer -->
+<div class="modal fade" id="editCustomerModal" tabindex="-1" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editCustomerForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editCustomerModalLabel">Edit Customer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editCustomerId" name="id">
+                    <div class="mb-3">
+                        <label for="editName" class="form-label">Name</label>
+                        <input type="text" id="editName" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editEmail" class="form-label">Email</label>
+                        <input type="email" id="editEmail" name="email" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPhone" class="form-label">Phone</label>
+                        <input type="text" id="editPhone" name="phone" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editAddress" class="form-label">Address</label>
+                        <textarea id="editAddress" name="address" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editServicePlan" class="form-label">Service Plan</label>
+                        <select id="editServicePlan" name="service_plan_id" class="form-select" required>
+                            <!-- Service plans will be dynamically loaded here -->
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function loadCustomers() {
+        $.get('fetch_customers.php', function(data) {
+            const customers = JSON.parse(data);
+            let rows = '';
+            customers.forEach(customer => {
+                rows += `
+                    <tr>
+                        <td>${customer.id}</td>
+                        <td>${customer.name}</td>
+                        <td>${customer.email}</td>
+                        <td>${customer.phone}</td>
+                        <td>${customer.address}</td>
+                        <td>${customer.plan_name || 'N/A'}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="editCustomer(${customer.id}, '${customer.name}', '${customer.email}', '${customer.phone}', '${customer.address}', ${customer.service_plan_id})">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${customer.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            $('#customerTableBody').html(rows);
+        });
+    }
+
+    function loadServicePlans(callback) {
+        $.get('fetch_service_plans.php', function(data) {
+            const servicePlans = JSON.parse(data);
+            let options = '<option value="">Select a Plan</option>';
+            servicePlans.forEach(plan => {
+                options += `<option value="${plan.id}">${plan.plan_name}</option>`;
+            });
+            $('#editServicePlan').html(options);
+            if (callback) callback();
+        });
+    }
+
+    function editCustomer(id, name, email, phone, address, servicePlanId) {
+        $('#editCustomerId').val(id);
+        $('#editName').val(name);
+        $('#editEmail').val(email);
+        $('#editPhone').val(phone);
+        $('#editAddress').val(address);
+        loadServicePlans(() => {
+            $('#editServicePlan').val(servicePlanId);
+        });
+        $('#editCustomerModal').modal('show');
+    }
+
+    $('#editCustomerForm').on('submit', function(e) {
+        e.preventDefault();
+        const formData = $(this).serialize();
+
+        $.post('update_customer.php', formData, function(response) {
+            alert(response);
+            $('#editCustomerModal').modal('hide');
+            loadCustomers();
+        });
+    });
+
+    function deleteCustomer(id) {
+        if (confirm('Are you sure you want to delete this customer?')) {
+            $.post('delete_customer.php', { id: id }, function(response) {
+                alert(response);
+                loadCustomers();
+            });
+        }
+    }
+
+    $(document).ready(function() {
+        loadCustomers();
+        loadServicePlans();
+    });
+</script>
+</body>
+</html>
