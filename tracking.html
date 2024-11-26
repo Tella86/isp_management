@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usage Tracking</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">Internet Usage Tracking</h1>
+    
+    <!-- Usage chart -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <canvas id="usageChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Usage Limit and Alert Form -->
+    <div class="mt-4">
+        <h3>Set Usage Limit</h3>
+        <form id="usageLimitForm">
+            <div class="mb-3">
+                <label for="dataLimit" class="form-label">Data Limit (MB)</label>
+                <input type="number" class="form-control" id="dataLimit" name="dataLimit" required>
+            </div>
+            <div class="mb-3">
+                <label for="speedLimit" class="form-label">Speed Limit (Mbps)</label>
+                <input type="number" class="form-control" id="speedLimit" name="speedLimit" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Set Limit</button>
+        </form>
+    </div>
+    
+    <!-- Alert Display -->
+    <div id="usageAlert" class="mt-4" style="display:none;">
+        <div class="alert alert-danger" role="alert">
+            You have exceeded your usage limit!
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Example data for the chart
+    let usageData = {
+        labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+        datasets: [{
+            label: 'Data Usage (MB)',
+            data: [100, 150, 200, 250, 300, 350, 400],
+            backgroundColor: 'rgba(0, 123, 255, 0.5)',
+            borderColor: 'rgba(0, 123, 255, 1)',
+            borderWidth: 1
+        }, {
+            label: 'Speed (Mbps)',
+            data: [10, 15, 20, 25, 30, 35, 40],
+            backgroundColor: 'rgba(40, 167, 69, 0.5)',
+            borderColor: 'rgba(40, 167, 69, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    // Create the chart
+    const ctx = document.getElementById('usageChart').getContext('2d');
+    const usageChart = new Chart(ctx, {
+        type: 'line',
+        data: usageData,
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    beginAtZero: true
+                },
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Submit the form to set usage limit and alert
+    $('#usageLimitForm').on('submit', function(e) {
+        e.preventDefault();
+
+        const dataLimit = $('#dataLimit').val();
+        const speedLimit = $('#speedLimit').val();
+
+        // Example check to simulate exceeding the limit
+        if (usageData.datasets[0].data[usageData.datasets[0].data.length - 1] > dataLimit ||
+            usageData.datasets[1].data[usageData.datasets[1].data.length - 1] > speedLimit) {
+            $('#usageAlert').show();
+        } else {
+            $('#usageAlert').hide();
+        }
+
+        alert(`Data Limit: ${dataLimit} MB, Speed Limit: ${speedLimit} Mbps`);
+
+        // Send limit data to the backend
+        $.post('set_usage_limit.php', {
+            dataLimit: dataLimit,
+            speedLimit: speedLimit
+        }, function(response) {
+            alert(response);
+        });
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
